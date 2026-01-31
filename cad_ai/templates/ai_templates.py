@@ -1,3 +1,6 @@
+import math
+
+
 def tpl_cube(size=100.0, plane="XOY"):
     s = float(size)
     return {
@@ -297,6 +300,310 @@ def tpl_angle_perforated(
         ],
     }
 
+def tpl_cylinder_countersink(d=40.0, h=30.0, hole_d=10.0, cs_d=18.0, cs_depth=5.0, plane="XOY"):
+    return {
+        "name": "Cylinder + countersink",
+        "steps": [
+            {"action": "sketch", "plane": plane, "entities": [
+                {"type": "circle", "center": [0, 0], "radius": d / 2}
+            ]},
+            {"action": "extrude", "height": h},
+
+            {"action": "sketch", "plane": plane, "entities": [
+                {"type": "circle", "center": [0, 0], "radius": hole_d / 2}
+            ]},
+            {"action": "cut", "through_all": True},
+
+            {"action": "sketch", "plane": plane, "entities": [
+                {"type": "circle", "center": [0, 0], "radius": cs_d / 2}
+            ]},
+            {"action": "cut", "through_all": False, "depth": cs_depth},
+        ]
+    }
+
+def tpl_plate_with_slot(w=120.0, h=60.0, t=10.0, slot_w=12.0, slot_l=80.0, plane="XOY"):
+    sx = (w - slot_l) / 2
+    sy = (h - slot_w) / 2
+
+    return {
+        "name": "Plate with slot",
+        "steps": [
+            {"action": "sketch", "plane": plane, "entities": [
+                {"type": "line", "start": [0, 0], "end": [w, 0]},
+                {"type": "line", "start": [w, 0], "end": [w, h]},
+                {"type": "line", "start": [w, h], "end": [0, h]},
+                {"type": "line", "start": [0, h], "end": [0, 0]},
+            ]},
+            {"action": "extrude", "height": t},
+
+            {"action": "sketch", "plane": plane, "entities": [
+                {"type": "line", "start": [sx, sy], "end": [sx + slot_l, sy]},
+                {"type": "line", "start": [sx + slot_l, sy], "end": [sx + slot_l, sy + slot_w]},
+                {"type": "line", "start": [sx + slot_l, sy + slot_w], "end": [sx, sy + slot_w]},
+                {"type": "line", "start": [sx, sy + slot_w], "end": [sx, sy]},
+            ]},
+            {"action": "cut", "through_all": True},
+        ]
+    }
+
+def tpl_flange_with_holes(d_outer=120.0, d_inner=40.0, h=15.0, holes_count=6, bolt_d=10.0, pcd=90.0, plane="XOY"):
+    ents = [
+        {"type": "circle", "center": [0, 0], "radius": d_outer / 2},
+        {"type": "circle", "center": [0, 0], "radius": d_inner / 2},
+    ]
+
+    holes = []
+    for i in range(int(holes_count)):
+        a = 2 * math.pi * i / holes_count
+        holes.append({
+            "type": "circle",
+            "center": [pcd / 2 * math.cos(a), pcd / 2 * math.sin(a)],
+            "radius": bolt_d / 2
+        })
+
+    return {
+        "name": "Flange",
+        "steps": [
+            {"action": "sketch", "plane": plane, "entities": ents},
+            {"action": "extrude", "height": h},
+            {"action": "sketch", "plane": plane, "entities": holes},
+            {"action": "cut", "through_all": True},
+        ]
+    }
+
+def tpl_stepped_shaft(d1=40.0, l1=50.0, d2=30.0, l2=40.0, plane="XOY"):
+    return {
+        "name": "Stepped shaft",
+        "steps": [
+            {"action": "sketch", "plane": plane, "entities": [
+                {"type": "circle", "center": [0, 0], "radius": d1 / 2}
+            ]},
+            {"action": "extrude", "height": l1},
+
+            {"action": "sketch", "plane": plane, "entities": [
+                {"type": "circle", "center": [0, 0], "radius": d2 / 2}
+            ]},
+            {"action": "extrude", "height": l2},
+        ]
+    }
+
+
+
+def tpl_perforated_plate(w=120.0, h=80.0, t=8.0, holes_x=5, holes_y=3, d=6.0, pitch=20.0, plane="XOY"):
+    holes = []
+    ox = (w - (holes_x - 1) * pitch) / 2
+    oy = (h - (holes_y - 1) * pitch) / 2
+
+    for iy in range(holes_y):
+        for ix in range(holes_x):
+            holes.append({
+                "type": "circle",
+                "center": [ox + ix * pitch, oy + iy * pitch],
+                "radius": d / 2
+            })
+
+    return {
+        "name": "Perforated plate",
+        "steps": [
+            {"action": "sketch", "plane": plane, "entities": [
+                {"type": "line", "start": [0, 0], "end": [w, 0]},
+                {"type": "line", "start": [w, 0], "end": [w, h]},
+                {"type": "line", "start": [w, h], "end": [0, h]},
+                {"type": "line", "start": [0, h], "end": [0, 0]},
+            ]},
+            {"action": "extrude", "height": t},
+            {"action": "sketch", "plane": plane, "entities": holes},
+            {"action": "cut", "through_all": True},
+        ]
+    }
+
+
+def tpl_box_with_pocket(w=100.0, h=60.0, base_z=30.0, pocket_w=60.0, pocket_h=30.0, pocket_depth=10.0, plane="XOY"):
+    w = float(w); h = float(h); base_z = float(base_z)
+    pocket_w = float(pocket_w); pocket_h = float(pocket_h); pocket_depth = float(pocket_depth)
+    px0 = (w - pocket_w) / 2
+    py0 = (h - pocket_h) / 2
+    return {
+        "name": "Box with pocket",
+        "steps": [
+            {"action": "sketch", "plane": plane, "entities": [
+                {"type": "line", "start": [0, 0], "end": [w, 0]},
+                {"type": "line", "start": [w, 0], "end": [w, h]},
+                {"type": "line", "start": [w, h], "end": [0, h]},
+                {"type": "line", "start": [0, h], "end": [0, 0]},
+            ]},
+            {"action": "extrude", "height": base_z},
+            {"action": "sketch", "plane": plane, "entities": [
+                {"type": "line", "start": [px0, py0], "end": [px0 + pocket_w, py0]},
+                {"type": "line", "start": [px0 + pocket_w, py0], "end": [px0 + pocket_w, py0 + pocket_h]},
+                {"type": "line", "start": [px0 + pocket_w, py0 + pocket_h], "end": [px0, py0 + pocket_h]},
+                {"type": "line", "start": [px0, py0 + pocket_h], "end": [px0, py0]},
+            ]},
+            {"action": "cut", "through_all": False, "depth": pocket_depth}
+        ]
+    }
+
+def tpl_bracket_hole_offset_plane(a=80.0, b=40.0, t=6.0, length=60.0, hole_d=10.0, offset_z=20.0, plane="XOZ"):
+    # Простой уголок с отверстием на смещённой плоскости
+    a = float(a); b = float(b); t = float(t); length = float(length)
+    hole_r = float(hole_d) / 2.0
+    offset_z = float(offset_z)
+    cx = a / 2; cz = 0; 
+    return {
+        "name": "Bracket hole on offset plane",
+        "steps": [
+            {"action": "sketch", "plane": plane, "entities": [
+                {"type": "line", "start": [0, 0], "end": [a, 0]},
+                {"type": "line", "start": [a, 0], "end": [a, t]},
+                {"type": "line", "start": [a, t], "end": [t, t]},
+                {"type": "line", "start": [t, t], "end": [t, b]},
+                {"type": "line", "start": [t, b], "end": [0, b]},
+                {"type": "line", "start": [0, b], "end": [0, 0]},
+            ]},
+            {"action": "extrude", "height": length},
+            {"action": "workplane_offset", "base_plane": "XOY", "offset": offset_z, "name": "hole_plane"},
+            {"action": "sketch_on_plane", "name": "hole_plane", "entities": [
+                {"type": "circle", "center": [cx, cz], "radius": hole_r}
+            ]},
+            {"action": "cut", "through_all": True}
+        ]
+    }
+
+def tpl_plate_multi_blind_holes(w=100.0, h=60.0, thickness=10.0, holes=None, plane="XOY"):
+    w = float(w); h = float(h); thickness = float(thickness)
+
+    if holes is None:
+        holes = []
+
+    outline = [
+        {"type": "line", "start": [0, 0], "end": [w, 0]},
+        {"type": "line", "start": [w, 0], "end": [w, h]},
+        {"type": "line", "start": [w, h], "end": [0, h]},
+        {"type": "line", "start": [0, h], "end": [0, 0]},
+    ]
+
+    steps = [
+        {"action": "sketch", "plane": plane, "entities": outline},
+        {"action": "extrude", "height": thickness},
+    ]
+
+    for hinfo in holes:
+        steps.append({
+            "action": "sketch",
+            "plane": plane,
+            "entities": [
+                {
+                    "type": "circle",
+                    "center": [hinfo["x"], hinfo["y"]],
+                    "radius": float(hinfo["d"]) / 2.0
+                }
+            ]
+        })
+        steps.append({
+            "action": "cut",
+            "through_all": False,
+            "depth": float(hinfo["depth"]),
+            "direction": "normal"
+        })
+
+    return {"name": "Plate multi blind holes", "steps": steps}
+
+def tpl_ribbed_beam(w=120.0, h=30.0, thickness=10.0, rib_w=4.0, rib_h=20.0, rib_count=4, spacing=20.0, plane="XOY"):
+    w = float(w); h = float(h); thickness = float(thickness)
+    rib_w = float(rib_w); rib_h = float(rib_h); rib_count = int(rib_count); spacing = float(spacing)
+    # base rectangle
+    outline = [
+        {"type": "line", "start": [0, 0], "end": [w, 0]},
+        {"type": "line", "start": [w, 0], "end": [w, h]},
+        {"type": "line", "start": [w, h], "end": [0, h]},
+        {"type": "line", "start": [0, h], "end": [0, 0]},
+    ]
+    steps = [
+        {"action": "sketch", "plane": plane, "entities": outline},
+        {"action": "extrude", "height": thickness},
+    ]
+    # ribs
+    for i in range(rib_count):
+        x0 = spacing + i * spacing
+        if x0 + rib_w > w:
+            break
+        steps.append({"action": "sketch", "plane": plane, "entities": [
+            {"type": "line", "start": [x0, 0], "end": [x0 + rib_w, 0]},
+            {"type": "line", "start": [x0 + rib_w, 0], "end": [x0 + rib_w, h]},
+            {"type": "line", "start": [x0 + rib_w, h], "end": [x0, h]},
+            {"type": "line", "start": [x0, h], "end": [x0, 0]},
+        ]})
+        steps.append({"action": "extrude", "height": rib_h})
+    return {"name": "Ribbed beam", "steps": steps}
+
+def tpl_cover_with_slot(w=100.0, h=60.0, thickness=8.0, slot_len=60.0, slot_w=10.0, slot_pos=30.0, plane="XOY"):
+    w = float(w); h = float(h); thickness = float(thickness)
+    slot_len = float(slot_len); slot_w = float(slot_w); slot_pos = float(slot_pos)
+    # outline
+    outline = [
+        {"type": "line", "start": [0, 0], "end": [w, 0]},
+        {"type": "line", "start": [w, 0], "end": [w, h]},
+        {"type": "line", "start": [w, h], "end": [0, h]},
+        {"type": "line", "start": [0, h], "end": [0, 0]},
+    ]
+    # slot (прямоугольник + 2 полуокружности)
+    sx = (w - slot_len) / 2
+    sy = slot_pos
+    slot = [
+        {"type": "line", "start": [sx, sy], "end": [sx + slot_len, sy]},
+        {"type": "line", "start": [sx + slot_len, sy], "end": [sx + slot_len, sy + slot_w]},
+        {"type": "line", "start": [sx + slot_len, sy + slot_w], "end": [sx, sy + slot_w]},
+        {"type": "line", "start": [sx, sy + slot_w], "end": [sx, sy]},
+        # полуокружности можно добавить отдельными sketch/cut, если нужно
+    ]
+    return {
+        "name": "Cover with slot",
+        "steps": [
+            {"action": "sketch", "plane": plane, "entities": outline},
+            {"action": "extrude", "height": thickness},
+            {"action": "sketch", "plane": plane, "entities": slot},
+            {"action": "cut", "through_all": True}
+        ]
+    }
+
+def tpl_bolt(
+    thread_d=10.0,      # Диаметр резьбы (M10)
+    shank_length=90.0,  # Длина стержня
+    head_d=20.0,        # Диаметр головки
+    head_height=10.0,   # Высота головки
+    plane="XOY"
+    ):
+    """
+    Болт с головкой и стержнем.
+    """
+    thread_d = float(thread_d)
+    shank_length = float(shank_length)
+    head_d = float(head_d)
+    head_height = float(head_height)
+    
+    # Радиусы
+    shank_radius = thread_d / 2.0
+    head_radius = head_d / 2.0
+    
+    return {
+        "name": "Болт",
+        "steps": [
+            # Стержень болта
+            {"action": "sketch", "plane": plane, "entities": [
+                {"type": "circle", "center": [0, 0], "radius": shank_radius}
+            ]},
+            {"action": "extrude", "height": shank_length, "direction": "normal"},
+            
+            # Головка болта
+            {"action": "sketch", "plane": plane, "entities": [
+                {"type": "circle", "center": [0, 0], "radius": head_radius}
+            ]},
+            {"action": "extrude", "height": head_height, "direction": "normal"},
+            
+            # Шестигранный вырез в головке (опционально, если хотите добавить)
+            # Для простоты демо оставим без шестигранника
+        ]
+    }
 
 TEMPLATES = {
     "Куб (AI)": {
@@ -304,13 +611,8 @@ TEMPLATES = {
         "build": lambda p: tpl_cube(size=p["size"], plane="XOY"),
     },
     "Куб с отверстием насквозь (AI)": {
-        "params": [
-            ("size", "Размер куба", 100.0),
-            ("hole_d", "Диаметр отверстия", 20.0),
-        ],
-        "build": lambda p: tpl_cube_with_through_hole(
-            size=p["size"], hole_d=p["hole_d"], plane="XOY"
-        ),
+        "params": [("size", "Размер куба", 100.0), ("hole_d", "Диаметр отверстия", 20.0)],
+        "build": lambda p: tpl_cube_with_through_hole(size=p["size"], hole_d=p["hole_d"], plane="XOY"),
     },
     "Уголок перфорированный (AI)": {
         "params": [
@@ -324,14 +626,9 @@ TEMPLATES = {
             ("edge_z", "Отступ по длине (Z)", 15.0),
         ],
         "build": lambda p: tpl_angle_perforated(
-            a=p["a"],
-            b=p["b"],
-            t=p["t"],
-            length=p["length"],
-            big_d=p["big_d"],
-            small_d=p["small_d"],
-            edge_x=p["edge_x"],
-            edge_z=p["edge_z"],
+            a=p["a"], b=p["b"], t=p["t"], length=p["length"],
+            big_d=p["big_d"], small_d=p["small_d"],
+            edge_x=p["edge_x"], edge_z=p["edge_z"],
         ),
     },
     "Пластина 4 отверстия (AI)": {
@@ -343,12 +640,8 @@ TEMPLATES = {
             ("margin", "Отступ от края", 15.0),
         ],
         "build": lambda p: tpl_plate_with_holes(
-            w=p["w"],
-            h=p["h"],
-            thickness=p["thickness"],
-            hole_d=p["hole_d"],
-            margin=p["margin"],
-            plane="XOY",
+            w=p["w"], h=p["h"], thickness=p["thickness"],
+            hole_d=p["hole_d"], margin=p["margin"], plane="XOY"
         ),
     },
     "Ступенчатый блок + карман (AI)": {
@@ -364,16 +657,178 @@ TEMPLATES = {
             ("pocket_depth", "Глубина кармана", 10.0),
         ],
         "build": lambda p: tpl_stepped_block(
+            w=p["w"], h=p["h"], base_z=p["base_z"],
+            step_w=p["step_w"], step_h=p["step_h"], step_z=p["step_z"],
+            pocket_w=p["pocket_w"], pocket_h=p["pocket_h"], pocket_depth=p["pocket_depth"],
+            plane="XOY"
+        ),
+    },
+    "Крышка со шпоночным пазом (AI)": {
+        "params": [
+            ("w", "Ширина", 100.0),
+            ("h", "Высота", 60.0),
+            ("thickness", "Толщина", 8.0),
+            ("slot_len", "Длина паза", 60.0),
+            ("slot_w", "Ширина паза", 10.0),
+            ("slot_pos", "Положение паза по Y", 30.0),
+        ],
+        "build": lambda p: tpl_cover_with_slot(
+            w=p["w"], h=p["h"], thickness=p["thickness"], slot_len=p["slot_len"], slot_w=p["slot_w"], slot_pos=p["slot_pos"], plane="XOY"
+        ),
+    },
+    "Коробка с карманом (AI)": {
+        "params": [
+            ("w", "Ширина", 100.0),
+            ("h", "Высота", 60.0),
+            ("base_z", "Толщина основания", 30.0),
+            ("pocket_w", "Ширина кармана", 60.0),
+            ("pocket_h", "Высота кармана", 30.0),
+            ("pocket_depth", "Глубина кармана", 10.0),
+        ],
+        "build": lambda p: tpl_box_with_pocket(
+            w=p["w"], h=p["h"], base_z=p["base_z"],
+            pocket_w=p["pocket_w"], pocket_h=p["pocket_h"], pocket_depth=p["pocket_depth"], plane="XOY"
+        ),
+    },
+    "Уголок с отверстием на смещённой плоскости (AI)": {
+        "params": [
+            ("a", "Полка A", 80.0),
+            ("b", "Полка B", 40.0),
+            ("t", "Толщина t", 6.0),
+            ("length", "Длина", 60.0),
+            ("hole_d", "Диаметр отверстия", 10.0),
+            ("offset_z", "Смещение плоскости", 20.0),
+        ],
+        "build": lambda p: tpl_bracket_hole_offset_plane(
+            a=p["a"], b=p["b"], t=p["t"], length=p["length"], hole_d=p["hole_d"], offset_z=p["offset_z"], plane="XOZ"
+        ),
+    },
+    "Пластина с несколькими слепыми отверстиями (AI)": {
+        "params": [
+            ("w", "Ширина", 100.0),
+            ("h", "Высота", 60.0),
+            ("thickness", "Толщина", 10.0),
+            ("holes_count", "Число отверстий", 2),
+        ],
+        "build": lambda p, holes=None: tpl_plate_multi_blind_holes(
             w=p["w"],
             h=p["h"],
-            base_z=p["base_z"],
-            step_w=p["step_w"],
-            step_h=p["step_h"],
-            step_z=p["step_z"],
-            pocket_w=p["pocket_w"],
-            pocket_h=p["pocket_h"],
-            pocket_depth=p["pocket_depth"],
-            plane="XOY",
+            thickness=p["thickness"],
+            holes=holes,
+            plane="XOY"
+        ),
+    },
+    "Балка с рёбрами (AI)": {
+        "params": [
+            ("w", "Ширина", 120.0),
+            ("h", "Высота", 30.0),
+            ("thickness", "Толщина", 10.0),
+            ("rib_w", "Ширина ребра", 4.0),
+            ("rib_h", "Высота ребра", 20.0),
+            ("rib_count", "Число рёбер", 4),
+            ("spacing", "Шаг рёбер", 20.0),
+        ],
+        "build": lambda p: tpl_ribbed_beam(
+            w=p["w"], h=p["h"], thickness=p["thickness"], rib_w=p["rib_w"], rib_h=p["rib_h"], rib_count=p["rib_count"], spacing=p["spacing"], plane="XOY"
+        ),
+    },
+    "Цилиндр с зенковкой (AI)": {
+        "params": [
+            ("d", "Диаметр", 40.0),
+            ("h", "Высота", 30.0),
+            ("hole_d", "Диаметр отверстия", 10.0),
+            ("cs_d", "Диаметр зенковки", 18.0),
+            ("cs_depth", "Глубина зенковки", 5.0),
+        ],
+        "build": lambda p: tpl_cylinder_countersink(
+            d=p["d"],
+            h=p["h"],
+            hole_d=p["hole_d"],
+            cs_d=p["cs_d"],
+            cs_depth=p["cs_depth"],
+        ),
+    },
+    "Пластина с пазом (AI)": {
+        "params": [
+            ("w", "Ширина", 120.0),
+            ("h", "Высота", 60.0),
+            ("t", "Толщина", 10.0),
+            ("slot_w", "Ширина паза", 12.0),
+            ("slot_l", "Длина паза", 80.0),
+        ],
+        "build": lambda p: tpl_plate_with_slot(
+            w=p["w"],
+            h=p["h"],
+            t=p["t"],
+            slot_w=p["slot_w"],
+            slot_l=p["slot_l"],
+        ),
+    },
+    "Фланец с отверстиями (AI)": {
+        "params": [
+            ("d_outer", "Наружный диаметр", 120.0),
+            ("d_inner", "Внутренний диаметр", 40.0),
+            ("h", "Толщина", 15.0),
+            ("holes_count", "Число отверстий", 6),
+            ("bolt_d", "Диаметр отверстий", 10.0),
+            ("pcd", "Диаметр окружности", 90.0),
+        ],
+        "build": lambda p: tpl_flange_with_holes(
+            d_outer=p["d_outer"],
+            d_inner=p["d_inner"],
+            h=p["h"],
+            holes_count=int(p["holes_count"]),
+            bolt_d=p["bolt_d"],
+            pcd=p["pcd"],
+        ),
+    },
+    "Ступенчатый вал (AI)": {
+        "params": [
+            ("d1", "Диаметр 1", 40.0),
+            ("l1", "Длина 1", 50.0),
+            ("d2", "Диаметр 2", 30.0),
+            ("l2", "Длина 2", 40.0),
+        ],
+        "build": lambda p: tpl_stepped_shaft(
+            d1=p["d1"],
+            l1=p["l1"],
+            d2=p["d2"],
+            l2=p["l2"],
+        ),
+    },
+    "Перфорированная пластина (AI)": {
+        "params": [
+            ("w", "Ширина", 120.0),
+            ("h", "Высота", 80.0),
+            ("t", "Толщина", 8.0),
+            ("holes_x", "Отверстий по X", 5),
+            ("holes_y", "Отверстий по Y", 3),
+            ("d", "Диаметр отверстий", 6.0),
+            ("pitch", "Шаг", 20.0),
+        ],
+        "build": lambda p: tpl_perforated_plate(
+            w=p["w"],
+            h=p["h"],
+            t=p["t"],
+            holes_x=int(p["holes_x"]),
+            holes_y=int(p["holes_y"]),
+            d=p["d"],
+            pitch=p["pitch"],
+        ),
+    },
+    "Болт M10 (AI)": {
+        "params": [
+            ("thread_d", "Диаметр резьбы", 10.0),
+            ("shank_length", "Длина стержня", 90.0),
+            ("head_d", "Диаметр головки", 20.0),
+            ("head_height", "Высота головки", 10.0),
+        ],
+        "build": lambda p: tpl_bolt(
+            thread_d=p["thread_d"],
+            shank_length=p["shank_length"],
+            head_d=p["head_d"],
+            head_height=p["head_height"],
+            plane="XOY"
         ),
     },
 }
