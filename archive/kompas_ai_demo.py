@@ -750,7 +750,7 @@ def tpl_box_with_pocket(w=100.0, h=60.0, base_z=30.0, pocket_w=60.0, pocket_h=30
         ]
     }
 
-def tpl_bracket_hole_offset_plane(a=80.0, b=40.0, t=6.0, length=60.0, hole_d=10.0, offset_z=20.0, plane="ZOX"):
+def tpl_bracket_hole_offset_plane(a=80.0, b=40.0, t=6.0, length=60.0, hole_d=10.0, offset_z=20.0, plane="XOZ"):
     # Простой уголок с отверстием на смещённой плоскости
     a = float(a); b = float(b); t = float(t); length = float(length)
     hole_r = float(hole_d) / 2.0

@@ -152,31 +152,68 @@ class Kompas3DBuilder:
 # Пример JSON для построения куба с отверстием
 json_instruction = """
 {
-  "name": "Болт M10x100",
+  "name": "Plate (4 holes)",
   "steps": [
     {
       "action": "sketch",
       "plane": "XOY",
       "entities": [
-        {"type": "circle", "center": [0, 0], "radius": 5}
+        {
+          "type": "line",
+          "start": [0, 0],
+          "end": [80.0, 0]
+        },
+        {
+          "type": "line",
+          "start": [80.0, 0],
+          "end": [80.0, 60.0]
+        },
+        {
+          "type": "line",
+          "start": [80.0, 60.0],
+          "end": [0, 60.0]
+        },
+        {
+          "type": "line",
+          "start": [0, 60.0],
+          "end": [0, 0]
+        }
       ]
     },
     {
       "action": "extrude",
-      "height": 90,
-      "direction": "normal"
+      "height": 8.0
     },
     {
       "action": "sketch",
-      "plane": "XOY",
+      "plane": "XOZ",
       "entities": [
-        {"type": "circle", "center": [0, 0], "radius": 10}
+        {
+          "type": "circle",
+          "center": [15.0, 15.0],
+          "radius": 6.0
+        },
+        {
+          "type": "circle",
+          "center": [65.0, 15.0],
+          "radius": 6.0
+        },
+        {
+          "type": "circle",
+          "center": [65.0, 45.0],
+          "radius": 6.0
+        },
+        {
+          "type": "circle",
+          "center": [15.0, 45.0],
+          "radius": 6.0
+        }
       ]
     },
     {
-      "action": "extrude",
-      "height": 10,
-      "direction": "normal"
+      "action": "cut",
+      "through_all": true,
+      "direction": "both"
     }
   ]
 }
