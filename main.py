@@ -152,20 +152,33 @@ class Kompas3DBuilder:
 # Пример JSON для построения куба с отверстием
 json_instruction = """
 {
-    "steps": [
-        {"action": "sketch", "plane": "XOY", "entities": [
-            {"type": "line", "start": [0, 0], "end": [100, 0]},
-            {"type": "line", "start": [100, 0], "end": [100, 100]},
-            {"type": "line", "start": [100, 100], "end": [0, 100]},
-            {"type": "line", "start": [0, 100], "end": [0, 0]}
-        ]},
-        {"action": "extrude", "height": 100},
-        {"action": "sketch", "plane": "XOY", "entities": [
-            {"type": "circle", "center": [50, 50], "radius": 20}
-        ]},
-        {"action": "cut", "depth": 1000},
-        {"action": "color", "value": [128, 128, 255]}
-    ]
+  "name": "Болт M10x100",
+  "steps": [
+    {
+      "action": "sketch",
+      "plane": "XOY",
+      "entities": [
+        {"type": "circle", "center": [0, 0], "radius": 5}
+      ]
+    },
+    {
+      "action": "extrude",
+      "height": 90,
+      "direction": "normal"
+    },
+    {
+      "action": "sketch",
+      "plane": "XOY",
+      "entities": [
+        {"type": "circle", "center": [0, 0], "radius": 10}
+      ]
+    },
+    {
+      "action": "extrude",
+      "height": 10,
+      "direction": "normal"
+    }
+  ]
 }
 """
 
