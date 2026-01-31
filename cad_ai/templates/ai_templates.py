@@ -605,6 +605,77 @@ def tpl_bolt(
         ]
     }
 
+def tpl_radial_bearing(
+    d_inner=20.0,      # Внутренний диаметр
+    d_outer=47.0,      # Наружный диаметр  
+    width=14.0,        # Ширина подшипника
+    chamfer=1.0,       # Фаска на кольцах
+    plane="XOY"
+):
+    """Радиальный шарикоподшипник (упрощённая модель)"""
+    d_inner = float(d_inner)
+    d_outer = float(d_outer)
+    width = float(width)
+    
+    # Проверка параметров
+    if d_outer <= d_inner:
+        raise ValueError("Наружный диаметр должен быть больше внутреннего")
+    if width <= 0:
+        raise ValueError("Ширина подшипника должна быть > 0")
+    
+    # Вычисление средней линии для дорожки качения
+    d_mid = (d_inner + d_outer) / 2
+    ball_d = (d_outer - d_inner - 4) / 4  # Упрощённый диаметр шарика
+    
+    return {
+        "name": "Радиальный подшипник",
+        "steps": [
+            # Наружное кольцо
+            {
+                "action": "sketch",
+                "plane": plane,
+                "entities": [
+                    {"type": "circle", "center": [0, 0], "radius": d_outer/2},
+                    {"type": "circle", "center": [0, 0], "radius": d_outer/2 - width/2},
+                ]
+            },
+            {"action": "extrude", "height": width, "direction": "normal"},
+            
+            # Внутреннее кольцо  
+            {
+                "action": "sketch",
+                "plane": plane,
+                "entities": [
+                    {"type": "circle", "center": [0, 0], "radius": d_inner/2 + width/2},
+                    {"type": "circle", "center": [0, 0], "radius": d_inner/2},
+                ]
+            },
+            {"action": "extrude", "height": width, "direction": "normal"},
+            
+ 
+            # Отверстия в сепараторе для шариков (упрощённо - 8 отверстий)
+            {
+                "action": "sketch",
+                "plane": plane,
+                "entities": [
+                    *[
+                        {
+                            "type": "circle",
+                            "center": [
+                                d_mid/2 * math.cos(2*math.pi*i/8),
+                                d_mid/2 * math.sin(2*math.pi*i/8)
+                            ],
+                            "radius": ball_d/2 * 0.8
+                        }
+                        for i in range(8)
+                    ]
+                ]
+            },
+            {"action": "cut", "through_all": True, "direction": "reverse"},
+        ]
+    }
+
+
 TEMPLATES = {
     "Куб (AI)": {
         "params": [("size", "Размер куба", 100.0)],
@@ -828,6 +899,19 @@ TEMPLATES = {
             shank_length=p["shank_length"],
             head_d=p["head_d"],
             head_height=p["head_height"],
+            plane="XOY"
+        ),
+    },
+    "Радиальный подшипник (AI)": {
+        "params": [
+            ("d_inner", "Внутренний диаметр, мм", 20.0),
+            ("d_outer", "Наружный диаметр, мм", 47.0),
+            ("width", "Ширина, мм", 14.0),
+        ],
+        "build": lambda p: tpl_radial_bearing(
+            d_inner=p["d_inner"],
+            d_outer=p["d_outer"],
+            width=p["width"],
             plane="XOY"
         ),
     },
