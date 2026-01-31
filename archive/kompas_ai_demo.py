@@ -873,6 +873,45 @@ def tpl_cover_with_slot(w=100.0, h=60.0, thickness=8.0, slot_len=60.0, slot_w=10
         ]
     }
 
+def tpl_bolt(
+    thread_d=10.0,      # Диаметр резьбы (M10)
+    shank_length=90.0,  # Длина стержня
+    head_d=20.0,        # Диаметр головки
+    head_height=10.0,   # Высота головки
+    plane="XOY"
+    ):
+    """
+    Болт с головкой и стержнем.
+    """
+    thread_d = float(thread_d)
+    shank_length = float(shank_length)
+    head_d = float(head_d)
+    head_height = float(head_height)
+    
+    # Радиусы
+    shank_radius = thread_d / 2.0
+    head_radius = head_d / 2.0
+    
+    return {
+        "name": "Болт",
+        "steps": [
+            # Стержень болта
+            {"action": "sketch", "plane": plane, "entities": [
+                {"type": "circle", "center": [0, 0], "radius": shank_radius}
+            ]},
+            {"action": "extrude", "height": shank_length, "direction": "normal"},
+            
+            # Головка болта
+            {"action": "sketch", "plane": plane, "entities": [
+                {"type": "circle", "center": [0, 0], "radius": head_radius}
+            ]},
+            {"action": "extrude", "height": head_height, "direction": "normal"},
+            
+            # Шестигранный вырез в головке (опционально, если хотите добавить)
+            # Для простоты демо оставим без шестигранника
+        ]
+    }
+
 
 TEMPLATES = {
     "Куб (AI)": {
@@ -1083,6 +1122,21 @@ TEMPLATES = {
             holes_y=int(p["holes_y"]),
             d=p["d"],
             pitch=p["pitch"],
+        ),
+    },
+    "Болт M10 (AI)": {
+        "params": [
+            ("thread_d", "Диаметр резьбы", 10.0),
+            ("shank_length", "Длина стержня", 90.0),
+            ("head_d", "Диаметр головки", 20.0),
+            ("head_height", "Высота головки", 10.0),
+        ],
+        "build": lambda p: tpl_bolt(
+            thread_d=p["thread_d"],
+            shank_length=p["shank_length"],
+            head_d=p["head_d"],
+            head_height=p["head_height"],
+            plane="XOY"
         ),
     },
 }
