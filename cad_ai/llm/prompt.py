@@ -1,52 +1,55 @@
-def make_llm_prompt(user_text: str) -> str:
-    return f"""
-Ты — генератор JSON-инструкций для построения 3D модели в КОМПАС-3D.
-Верни ТОЛЬКО валидный JSON-объект без пояснений, без markdown, без текста.
+# cad_ai/llm/prompt.py
+import json
 
-Формат:
+from cad_ai.templates.ai_templates import (
+    tpl_cube,
+    tpl_cube_with_through_hole,
+    tpl_plate_with_holes,
+    tpl_stepped_block,
+)
+
+
+def _compact_json(obj: dict) -> str:
+    # компактно, но читаемо
+    return json.dumps(obj, ensure_ascii=False, separators=(",", ":"))
+
+
+def make_llm_prompt(user_text: str) -> str:
+    # few-shot examples (stable “golden” outputs)
+    ex1 = _compact_json(tpl_cube(60.0, "XOY"))
+    ex2 = _compact_json(tpl_cube_with_through_hole(60.0, 12.0, "XOY"))
+    ex3 = _compact_json(tpl_plate_with_holes(120.0, 80.0, 8.0, 10.0, 15.0, "XOY"))
+    ex4 = _compact_json(tpl_stepped_block(120, 80, 20, 60, 40, 20, 30, 20, 10, "XOY"))
+
+    return f"""
+Ты генерируешь ТОЛЬКО валидный JSON-объект для построения модели в КОМПАС-3D.
+Никакого текста, объяснений, markdown, комментариев — только JSON.
+
+Схема результата:
 {{
   "name": "string",
   "steps": [ ... ]
 }}
 
-Разрешенные action и поля:
+Разрешённые action:
+- sketch (plane: XOY|XOZ|YOZ; entities: line/circle)
+- extrude (height:number; direction: normal|reverse|both)  // direction можно не указывать, по умолчанию both
+- cut (through_all:true|false; depth:number если through_all=false; direction: normal|reverse|both)
+- workplane_offset (base_plane: XOY|XOZ|YOZ; offset:number; name:string)
+- sketch_on_plane (plane: XOY|XOZ|YOZ|<name>; entities: line/circle)
 
-1) sketch:
-{{
-  "action": "sketch",
-  "plane": "XOY" | "XOZ" | "YOZ",
-  "entities": [
-    {{ "type":"line", "start":[x,y], "end":[x,y] }},
-    {{ "type":"circle", "center":[x,y], "radius": r }}
-  ]
-}}
+Жёсткие правила:
+- Все числа — числа (НЕ строки).
+- Не добавляй поля, которых нет в описании.
+- Не используй другие action.
+- Если не уверен — direction="both" для extrude и cut.
+- Если нужен “насквозь” — cut with through_all=true.
 
-2) extrude:
-{{ "action":"extrude", "height": number, "direction":"normal"|"reverse"|"both" }}
-
-3) cut:
-{{ "action":"cut", "through_all": true, "direction":"normal"|"reverse"|"both" }}
-или
-{{ "action":"cut", "through_all": false, "depth": number, "direction":"normal"|"reverse"|"both" }}
-
-4) workplane_offset:
-{{ "action":"workplane_offset", "base_plane":"XOY"|"XOZ"|"YOZ", "offset": number, "name":"string" }}
-
-5) sketch_on_plane:
-{{
-  "action":"sketch_on_plane",
-  "plane":"XOY"|"XOZ"|"YOZ"|"<name from workplane_offset>",
-  "name":"optional_step_name",
-  "entities":[ ...как в sketch... ]
-}}
-
-Ограничения:
-- Единицы: миллиметры.
-- Все числа — только числа (не строки).
-- Используй только разрешенные action.
-- Если параметров не хватает, выбери разумные значения по умолчанию.
-- Для отверстия "насквозь" используй cut with through_all=true.
-- Обычно direction для extrude: "both", для cut: "both" (если не уверен).
+Примеры корректного JSON (учись формату!):
+1) {ex1}
+2) {ex2}
+3) {ex3}
+4) {ex4}
 
 Запрос пользователя: {user_text}
 """.strip()
