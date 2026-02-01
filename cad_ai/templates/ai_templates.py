@@ -675,6 +675,76 @@ def tpl_radial_bearing(
         ]
     }
 
+def tpl_nut(
+    thread_d=10.0,        # Диаметр резьбы (M10)
+    flat_width=16.0,      # Ширина между параллельными гранями
+    thickness=8.0,        # Толщина гайки
+    plane="XOY"
+):
+    """
+    Гайка шестигранная
+    """
+    import math
+    
+    thread_d = float(thread_d)
+    flat_width = float(flat_width)
+    thickness = float(thickness)
+    
+    # Радиус описанной окружности шестигранника
+    circumradius = flat_width / math.sqrt(3)
+    
+    # Создаем точки шестигранника
+    hex_points = []
+    for i in range(6):
+        angle = math.radians(30) + i * math.radians(60)  # 30°, 90°, 150°, 210°, 270°, 330°
+        x = circumradius * math.cos(angle)
+        y = circumradius * math.sin(angle)
+        hex_points.append([x, y])
+    
+    # Сущности шестигранника
+    hex_entities = []
+    for i in range(6):
+        hex_entities.append({
+            "type": "line",
+            "start": hex_points[i],
+            "end": hex_points[(i + 1) % 6]
+        })
+    
+    return {
+        "name": "Гайка шестигранная",
+        "steps": [
+            # Шестигранник - основание гайки
+            {
+                "action": "sketch",
+                "plane": plane,
+                "entities": hex_entities
+            },
+            {
+                "action": "extrude",
+                "height": thickness,
+                "direction": "normal"
+            },
+            
+            # Резьбовое отверстие
+            {
+                "action": "sketch",
+                "plane": plane,
+                "entities": [
+                    {
+                        "type": "circle",
+                        "center": [0, 0],
+                        "radius": thread_d / 2.0
+                    }
+                ]
+            },
+            {
+                "action": "cut",
+                "through_all": True,
+                "direction": "reverse"
+            },
+        ]
+    }
+
 
 TEMPLATES = {
     "Куб (AI)": {
@@ -912,6 +982,19 @@ TEMPLATES = {
             d_inner=p["d_inner"],
             d_outer=p["d_outer"],
             width=p["width"],
+            plane="XOY"
+        ),
+    },
+     "Гайка шестигранная M10 (AI)": {
+        "params": [
+            ("thread_d", "Диаметр резьбы, мм", 10.0),
+            ("flat_width", "Ширина между гранями, мм", 16.0),
+            ("thickness", "Толщина гайки, мм", 8.0),
+        ],
+        "build": lambda p: tpl_nut(
+            thread_d=p["thread_d"],
+            flat_width=p["flat_width"],
+            thickness=p["thickness"],
             plane="XOY"
         ),
     },
