@@ -335,7 +335,7 @@ class App(tk.Tk):
 
             except LLMJSONError as e:
 
-                def err():
+                def err(e):
                     self.log_write(
                         "LLM ERROR (parse/validate):\n" + traceback.format_exc()
                     )
@@ -348,7 +348,7 @@ class App(tk.Tk):
                     self.on_show_llm_raw()
                     messagebox.showerror("LLM error", str(e))
 
-                self.after(0, err)
+                self.after(0, err, e)
 
             except Exception as e:
 
