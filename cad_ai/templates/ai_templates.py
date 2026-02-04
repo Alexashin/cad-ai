@@ -365,7 +365,7 @@ def tpl_flange_with_holes(d_outer=120.0, d_inner=40.0, h=15.0, holes_count=6, bo
         "name": "Flange",
         "steps": [
             {"action": "sketch", "plane": plane, "entities": ents},
-            {"action": "extrude", "height": h},
+            {"action": "extrude", "height": h, "direction": "reverse"},
             {"action": "sketch", "plane": plane, "entities": holes},
             {"action": "cut", "through_all": True},
         ]
