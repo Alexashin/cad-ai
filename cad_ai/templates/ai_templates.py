@@ -300,7 +300,8 @@ def tpl_angle_perforated(
         ],
     }
 
-def tpl_cylinder_countersink(d=40.0, h=30.0, hole_d=10.0, cs_d=18.0, cs_depth=5.0, plane="XOY"):
+# НУЖНО ДОБАВИТЬ ВАРИАНТ ВЫДАВЛИВАНИЯ/ВЫРЕЗАНИЯ ПОД УГЛОМ ДЛЯ ШТУК ПО ТИПУ ЗЕНКОВКИ И Т.П.
+def tpl_cylinder_countersink(d=40.0, h=30.0, hole_d=10.0, cs_d=10.0, cs_depth=5.0, plane="XOY"):
     return {
         "name": "Cylinder + countersink",
         "steps": [
@@ -878,7 +879,7 @@ TEMPLATES = {
             ("d", "Диаметр", 40.0),
             ("h", "Высота", 30.0),
             ("hole_d", "Диаметр отверстия", 10.0),
-            ("cs_d", "Диаметр зенковки", 18.0),
+            ("cs_d", "Диаметр зенковки", 10.0),
             ("cs_depth", "Глубина зенковки", 5.0),
         ],
         "build": lambda p: tpl_cylinder_countersink(
